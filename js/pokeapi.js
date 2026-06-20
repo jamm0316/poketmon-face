@@ -40,9 +40,9 @@ export async function fetchPokemonImage(nameEn) {
   }
 }
 
-const MAX_DEX = 1025; // 9세대까지 대략적인 도감 번호 상한
+const MAX_DEX = 386; // 1~3세대 (관동·성도·호연) 도감 상한
 
-// 랜덤 포켓몬 1마리의 영문/한글 이름을 가져온다. (백엔드 미연결 시 데모용)
+// 랜덤 포켓몬 1마리의 이름/외형 분류/도감 설명을 가져온다. (백엔드 미연결 시 데모용)
 export async function fetchRandomPokemon() {
   const id = 1 + Math.floor(Math.random() * MAX_DEX);
   try {
@@ -52,18 +52,28 @@ export async function fetchRandomPokemon() {
     const name_en = data.name;
 
     let name_ko = name_en;
+    let genus_ko = ""; // 외형 분류 (예: 쥐포켓몬)
+    let flavor_ko = ""; // 도감 설명 (성격/일화/스토리)
     try {
       const sres = await fetch(data.species.url);
       if (sres.ok) {
         const sdata = await sres.json();
         const ko = sdata.names?.find((n) => n.language?.name === "ko");
         if (ko?.name) name_ko = ko.name;
+        const g = sdata.genera?.find((x) => x.language?.name === "ko");
+        if (g?.genus) genus_ko = g.genus;
+        // 한글 도감 설명 중 하나를 골라 공백 정리
+        const koFlavors = (sdata.flavor_text_entries || []).filter(
+          (x) => x.language?.name === "ko"
+        );
+        const f = koFlavors[Math.floor(Math.random() * koFlavors.length)];
+        if (f?.flavor_text) flavor_ko = f.flavor_text.replace(/\s+/g, " ").trim();
       }
     } catch {
-      /* 한글 이름 실패 시 영문 사용 */
+      /* 부가 정보 실패 시 이름만 사용 */
     }
 
-    return { id, name_en, name_ko };
+    return { id, name_en, name_ko, genus_ko, flavor_ko };
   } catch (e) {
     console.warn(`랜덤 포켓몬 조회 실패 (${id}):`, e.message);
     return null;
