@@ -1,0 +1,41 @@
+// AI가 돌려준 "포켓몬 영문 이름"으로 PokeAPI에서 이미지(스프라이트)를 가져온다.
+// 즉, 이름 기반으로 인터넷에서 포켓몬 사진을 받아오는 부분.
+
+const POKEAPI = "https://pokeapi.co/api/v2/pokemon";
+const cache = new Map();
+
+// 이름을 PokeAPI 조회용으로 정규화 (소문자, 공백/특수문자 → 하이픈)
+function normalize(name) {
+  return String(name)
+    .trim()
+    .toLowerCase()
+    .replace(/['.]/g, "")
+    .replace(/[\s_]+/g, "-");
+}
+
+// 영문 이름 → { id, sprite } (실패 시 sprite=null)
+export async function fetchPokemonImage(nameEn) {
+  const key = normalize(nameEn);
+  if (cache.has(key)) return cache.get(key);
+
+  try {
+    const res = await fetch(`${POKEAPI}/${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error(`PokeAPI ${res.status}`);
+    const data = await res.json();
+
+    const sprite =
+      data?.sprites?.other?.["official-artwork"]?.front_default ||
+      data?.sprites?.other?.home?.front_default ||
+      data?.sprites?.front_default ||
+      null;
+
+    const result = { id: data.id, sprite };
+    cache.set(key, result);
+    return result;
+  } catch (e) {
+    console.warn(`포켓몬 이미지 조회 실패 (${key}):`, e.message);
+    const result = { id: null, sprite: null };
+    cache.set(key, result);
+    return result;
+  }
+}
