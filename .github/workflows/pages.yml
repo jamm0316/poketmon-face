@@ -5,7 +5,7 @@ name: Deploy frontend to GitHub Pages
 
 on:
   push:
-    branches: [claude/pokemon-face-matcher-e5fj9q]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -25,10 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Pages 활성화는 저장소 Settings → Pages → Source: GitHub Actions 에서
+      # 최초 1회 직접 켜주세요 (Actions 토큰으로는 활성화 권한이 없음).
       - uses: actions/configure-pages@v5
-        with:
-          # 저장소에 Pages 가 꺼져 있으면 자동으로 켭니다 (GitHub Actions 소스).
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           # 정적 프론트엔드 파일만 올립니다.
