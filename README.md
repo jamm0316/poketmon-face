@@ -28,11 +28,12 @@
 npm install
 
 # 2) API 키 설정
-cp .env.example .env       # .env 를 열어 ANTHROPIC_API_KEY 입력
-export $(grep -v '^#' .env | xargs)   # 또는 직접 export ANTHROPIC_API_KEY=sk-ant-...
+cp .env.example .env       # .env 를 열어 ANTHROPIC_API_KEY 입력 (.env 는 깃에 안 올라감)
 
 # 3) 실행
-npm start                  # http://localhost:3000
+npm run dev                # .env 를 자동으로 읽음 (Node 내장 --env-file)
+# 또는
+ANTHROPIC_API_KEY=sk-ant-... npm start
 ```
 
 > 키 없이 실행하면 화면은 뜨지만 `/api/match` 호출 시 503을 반환합니다.
@@ -49,6 +50,23 @@ docker run -p 3000:3000 -e ANTHROPIC_API_KEY=sk-ant-... poketmon-face
 ```
 
 배포 플랫폼에서는 환경변수 `ANTHROPIC_API_KEY`(필수)와 `PORT`(선택)를 설정하면 됩니다.
+
+## API 키는 어디에 두나요?
+
+키는 **절대 깃에 커밋하지 않습니다**(`.env` 는 `.gitignore` 처리됨).
+"실행되는 환경의 환경변수"로만 주입하며, 실행 위치에 따라 다릅니다.
+
+| 실행 위치 | 키를 두는 곳 |
+|-----------|-------------|
+| 내 PC (로컬) | `.env` 파일 → `npm run dev` 가 자동으로 읽음 |
+| Docker Compose | `.env` 파일 (`env_file: .env`) → `docker compose up` |
+| Docker 단독 | `docker run -e ANTHROPIC_API_KEY=... ` |
+| Render/Railway/Fly 등 | 각 플랫폼 대시보드의 **Environment Variables / Secrets** |
+| GitHub Actions로 배포 | **GitHub Secrets** 에 저장 → 워크플로에서 배포 대상의 환경변수로 전달 |
+
+> 참고: **GitHub Secrets** 는 "CI/CD(배포 자동화)에서 키를 안전하게 꺼내 쓰는 금고"입니다.
+> 실행 중인 서버가 직접 GitHub Secrets 를 읽는 게 아니라, 배포 시점에 호스팅 환경의
+> 환경변수로 넣어주는 용도예요. 즉 **앱은 언제나 `process.env.ANTHROPIC_API_KEY` 하나만** 봅니다.
 
 ## 구성
 

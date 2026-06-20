@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    # .env 파일에서 ANTHROPIC_API_KEY / PORT 를 읽어 주입한다.
+    # .env 는 .gitignore 에 있어 깃에 올라가지 않는다.
+    env_file:
+      - .env
+    restart: unless-stopped
