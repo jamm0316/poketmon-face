@@ -93,6 +93,15 @@ async function analyze(dataUrl) {
       body: JSON.stringify({ image: base64, mediaType }),
     });
 
+    // 백엔드가 없는 환경(예: GitHub Pages 정적 배포)에서는 /api/match 가 없어 404
+    if (res.status === 404) {
+      setStatus("");
+      els.result.innerHTML =
+        '<p class="no-face">🧩 이 화면은 <b>프론트엔드 데모</b>예요.<br/>실제 닮은 포켓몬 분석은 AI 백엔드가 필요해서, 서버를 실행한 환경에서만 동작합니다.</p>';
+      els.retryBtn.style.display = "inline-block";
+      return;
+    }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || `서버 오류 (${res.status})`);
