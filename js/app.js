@@ -5,7 +5,7 @@
  * 3) 포켓몬 이름으로 PokeAPI에서 이미지를 받아와 결과 표시
  * ------------------------------------------------------------------ */
 
-import { fetchPokemonImage, fetchRandomPokemons } from "./pokeapi.js";
+import { fetchPokemonImage, fetchRandomPokemons } from "./pokeapi.js?v=3";
 
 const els = {
   status: document.getElementById("status"),
