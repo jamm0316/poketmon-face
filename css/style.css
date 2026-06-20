@@ -258,6 +258,18 @@ body {
   font-size: 0.85rem;
 }
 
+.demo-banner {
+  background: #fff4d6;
+  color: #8a6d1a;
+  border: 1px solid #f0d98a;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin: 0 auto 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 340px;
+}
+
 .no-face {
   background: #fff;
   border-radius: var(--radius);

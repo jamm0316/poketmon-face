@@ -39,3 +39,49 @@ export async function fetchPokemonImage(nameEn) {
     return result;
   }
 }
+
+const MAX_DEX = 1025; // 9세대까지 대략적인 도감 번호 상한
+
+// 랜덤 포켓몬 1마리의 영문/한글 이름을 가져온다. (백엔드 미연결 시 데모용)
+export async function fetchRandomPokemon() {
+  const id = 1 + Math.floor(Math.random() * MAX_DEX);
+  try {
+    const res = await fetch(`${POKEAPI}/${id}`);
+    if (!res.ok) throw new Error(`PokeAPI ${res.status}`);
+    const data = await res.json();
+    const name_en = data.name;
+
+    let name_ko = name_en;
+    try {
+      const sres = await fetch(data.species.url);
+      if (sres.ok) {
+        const sdata = await sres.json();
+        const ko = sdata.names?.find((n) => n.language?.name === "ko");
+        if (ko?.name) name_ko = ko.name;
+      }
+    } catch {
+      /* 한글 이름 실패 시 영문 사용 */
+    }
+
+    return { id, name_en, name_ko };
+  } catch (e) {
+    console.warn(`랜덤 포켓몬 조회 실패 (${id}):`, e.message);
+    return null;
+  }
+}
+
+// 서로 다른 랜덤 포켓몬 n마리
+export async function fetchRandomPokemons(n) {
+  const seen = new Set();
+  const list = [];
+  let attempts = 0;
+  while (list.length < n && attempts < n * 4) {
+    attempts++;
+    const p = await fetchRandomPokemon();
+    if (p && !seen.has(p.id)) {
+      seen.add(p.id);
+      list.push(p);
+    }
+  }
+  return list;
+}

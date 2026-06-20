@@ -5,7 +5,7 @@
  * 3) 포켓몬 이름으로 PokeAPI에서 이미지를 받아와 결과 표시
  * ------------------------------------------------------------------ */
 
-import { fetchPokemonImage } from "./pokeapi.js";
+import { fetchPokemonImage, fetchRandomPokemons } from "./pokeapi.js";
 
 const els = {
   status: document.getElementById("status"),
@@ -93,12 +93,10 @@ async function analyze(dataUrl) {
       body: JSON.stringify({ image: base64, mediaType }),
     });
 
-    // 백엔드가 없는 환경(예: GitHub Pages 정적 배포)에서는 /api/match 가 없어 404
-    if (res.status === 404) {
-      setStatus("");
-      els.result.innerHTML =
-        '<p class="no-face">🧩 이 화면은 <b>프론트엔드 데모</b>예요.<br/>실제 닮은 포켓몬 분석은 AI 백엔드가 필요해서, 서버를 실행한 환경에서만 동작합니다.</p>';
-      els.retryBtn.style.display = "inline-block";
+    // 백엔드가 없거나(예: GitHub Pages 정적 배포 → 404) 키 미설정(503)이면
+    // 멈추지 않고 랜덤 포켓몬으로 무중단 진행 (데모 모드)
+    if (res.status === 404 || res.status === 503) {
+      await runDemoMode();
       return;
     }
 
@@ -119,15 +117,48 @@ async function analyze(dataUrl) {
 
     await renderResult(data);
   } catch (e) {
-    console.error(e);
-    setStatus("");
-    els.result.innerHTML = `<p class="no-face">⚠️ ${e.message}</p>`;
+    // 네트워크 오류 등으로 백엔드에 닿지 못해도 무중단으로 데모 진행
+    console.warn("백엔드 연결 실패, 데모 모드로 진행:", e.message);
+    await runDemoMode();
   }
   els.retryBtn.style.display = "inline-block";
 }
 
+/* ---------------------------- 데모 모드 ---------------------------- */
+// 백엔드가 없을 때, 랜덤 포켓몬으로 결과를 만들어 무중단으로 보여준다.
+async function runDemoMode() {
+  setStatus("랜덤으로 골라보는 중… 🎲");
+  const picks = await fetchRandomPokemons(3);
+  setStatus("");
+
+  if (picks.length === 0) {
+    els.result.innerHTML =
+      '<p class="no-face">⚠️ 지금은 결과를 가져올 수 없어요. 잠시 후 다시 시도해 주세요.</p>';
+    return;
+  }
+
+  const rand = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+  const best = picks[0];
+  const data = {
+    face_found: true,
+    best_match: {
+      name_en: best.name_en,
+      name_ko: best.name_ko,
+      similarity: rand(75, 95),
+      reason:
+        "백엔드(AI)가 연결되지 않아 랜덤으로 골라본 결과예요. 서버를 연결하면 진짜로 닮은 포켓몬을 찾아드려요!",
+    },
+    runner_ups: picks.slice(1).map((p) => ({
+      name_en: p.name_en,
+      name_ko: p.name_ko,
+      similarity: rand(60, 74),
+    })),
+  };
+  await renderResult(data, { demo: true });
+}
+
 /* ---------------------------- 결과 렌더 ---------------------------- */
-async function renderResult(data) {
+async function renderResult(data, opts = {}) {
   const best = data.best_match;
   const others = Array.isArray(data.runner_ups) ? data.runner_ups.slice(0, 2) : [];
 
@@ -147,6 +178,7 @@ async function renderResult(data) {
   const percent = clampPercent(best.similarity);
 
   els.result.innerHTML = `
+    ${opts.demo ? '<p class="demo-banner">🎲 데모 모드 — 백엔드 미연결이라 랜덤으로 골랐어요</p>' : ""}
     <div class="best-card">
       <p class="best-label">당신과 닮은 포켓몬은…</p>
       <img class="best-sprite" src="${bestSprite}" alt="${escapeHtml(best.name_ko)}" />
