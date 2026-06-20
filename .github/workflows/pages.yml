@@ -26,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        with:
+          # 저장소에 Pages 가 꺼져 있으면 자동으로 켭니다 (GitHub Actions 소스).
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           # 정적 프론트엔드 파일만 올립니다.
