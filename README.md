@@ -1,5 +1,12 @@
 # 🔍 닮은 포켓몬 찾기 (poketmon-face)
 
+### 👉 [지금 바로 닮은 포켓몬 찾아보기](https://jamm0316.github.io/poketmon-face/)
+
+> 위 링크는 GitHub Pages로 배포된 **프론트엔드 미리보기**입니다.
+> 실제 AI 분석은 백엔드(API 키)가 필요하므로, 분석 기능까지 쓰려면 아래 [로컬 실행](#로컬-실행)을 참고하세요.
+
+---
+
 사진을 찍거나 올리면 **AI(Claude 비전 모델)** 가 얼굴을 보고 가장 닮은 포켓몬을 골라주고,
 그 포켓몬 이미지를 **PokeAPI에서 이름으로 가져와** 보여주는 웹앱입니다.
 
@@ -40,7 +47,8 @@ ANTHROPIC_API_KEY=sk-ant-... npm start
 
 ## 배포
 
-서버가 필요하므로 정적 호스팅(GitHub Pages)으로는 동작하지 않습니다.
+분석 기능은 서버가 필요하므로 정적 호스팅(GitHub Pages)만으로는 동작하지 않습니다.
+GitHub Pages에는 화면 미리보기 용도로 프론트엔드만 올라가며, 실제 AI 분석을 쓰려면
 Node 호스팅(Render, Railway, Fly.io 등)에 올리거나 Docker로 실행하세요.
 
 ```bash
